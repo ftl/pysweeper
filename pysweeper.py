@@ -1,3 +1,6 @@
+#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 # Copyright (c) Florian Thienel/DL3NEY.
 # 
 # All rights reserved. This program and the accompanying materials

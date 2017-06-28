@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Copyright (c) Florian Thienel/DL3NEY.
 # 
 # All rights reserved. This program and the accompanying materials
@@ -40,16 +42,16 @@ class Sweeper(QObject):
             stopbits = serial.STOPBITS_ONE,
             bytesize = serial.EIGHTBITS
         )
-        print 'Connecting to ' + self.serial.port
-        print self._read_until(r"Build Date\s+:.*\n")
-        print 'Connected to ' + self.serial.port
+        print('Connecting to ' + self.serial.port)
+        print(self._read_until(r"Build Date\s+:.*\n"))
+        print('Connected to ' + self.serial.port)
         self.connection_opened.emit()
 
     def close_connection(self):
         if not(self.is_connected()): return
         self.serial.close()
         self.serial = None
-        print 'Disconnected'
+        print('Disconnected')
         self.connection_closed.emit()
 
     def is_connected(self):
@@ -59,17 +61,17 @@ class Sweeper(QObject):
         if not(self.is_connected()): return
         self.serial.write('v')
         self.serial.flush()
-        print self._read_until(r"Build Date\s+:.*\n")
+        print(self._read_until(r"Build Date\s+:.*\n"))
 
     def get_sweep_info(self):
         if not(self.is_connected()): return
         self.serial.write('?')
         self.serial.flush()
-        print self._read_until(r"Num Steps:\s+.*\n")
+        print(self._read_until(r"Num Steps:\s+.*\n"))
 
     def sweep(self, start_frequency, stop_frequency, steps):
         if not(self.is_connected()): return
-        self.serial.write(str(start_frequency) + 'a' + str(stop_frequency) + 'b' + str(steps) + 'ns')
+        self.serial.write("{}a{}b{}ns".format(start_frequency, stop_frequency, steps).encode(encoding="ASCII"))
         self.serial.flush()
         data_point = self._read_next_data_point()
         while data_point:
@@ -79,7 +81,7 @@ class Sweeper(QObject):
     def _read_next_data_point(self):
         line = ''
         while True:
-            c = self.serial.read(1)
+            c = self.serial.read(1).decode(encoding="ASCII")
             line += c
             if c == '\n':
                 m = DataPoint.PATTERN.match(line)
@@ -98,7 +100,7 @@ class Sweeper(QObject):
         responsePattern = re.compile(expectedResponse, re.DOTALL)
         response = ''
         while True:
-            response += self.serial.read(1)
+            response += self.serial.read(1).decode(encoding="ASCII")
             if responsePattern.search(response):
                 break
         return response

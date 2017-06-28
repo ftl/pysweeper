@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Copyright (c) Florian Thienel/DL3NEY.
 # 
 # All rights reserved. This program and the accompanying materials
@@ -128,5 +130,5 @@ class SweepPlotter(pg.PlotWidget):
     def _reset_data(self):
         self.x_values = []
         self.y_values = []
-        self.min_vswr = sys.maxint
+        self.min_vswr = sys.maxsize
         self.min_vswr_frequency = 0
