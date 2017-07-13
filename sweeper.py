@@ -73,10 +73,27 @@ class Sweeper(QObject):
         if not(self.is_connected()): return
         self.serial.write("{}a{}b{}ns".format(start_frequency, stop_frequency, steps).encode(encoding="ASCII"))
         self.serial.flush()
+        # TODO: receive datapoints async
         data_point = self._read_next_data_point()
         while data_point:
             self.data_point_received.emit(data_point.frequency, data_point.vswr, data_point.forward, data_point.reverse)            
             data_point = self._read_next_data_point()
+
+    def tune(self, frequency):
+        if not(self.is_connected()): return
+        self.serial.write("{}ct".format(frequency).encode(encoding="ASCII"))
+        self.serial.flush()
+        # TODO: receive datapoints async
+
+    def beacon_on(self, frequency, text):
+        if not(self.is_connected()): return
+        self.serial.write("{}c!{}\n#".format(frequency, text).encode(encoding="ASCII"))
+        self.serial.flush()
+
+    def beacon_off(self):
+        if not(self.is_connected()): return
+        self.serial.write("#".encode(encoding="ASCII"))
+        self.serial.flush()
 
     def _read_next_data_point(self):
         line = ''

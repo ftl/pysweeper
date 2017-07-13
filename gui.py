@@ -32,7 +32,15 @@ class MainWindow(QMainWindow):
         self.connect_button.clicked.connect(self.connect_sweeper)
         self.disconnect_button = QPushButton('&Disconnect', sidebar)
         self.disconnect_button.clicked.connect(self.disconnect_sweeper)
-        self.sweep_tab = SweepTab(sidebar)
+
+        self.tabs = QTabWidget(sidebar)
+        
+        sweep_tab = SweepTab(self.tabs)
+        self.tabs.addTab(sweep_tab, 'Sweep')
+        tune_tab = TuneTab(self.tabs)
+        self.tabs.addTab(tune_tab, 'Tune')
+        beacon_tab = BeaconTab(self.tabs)
+        self.tabs.addTab(beacon_tab, 'Beacon')
 
         self.plotter = SweepPlotter(app, root_frame)
 
@@ -41,7 +49,7 @@ class MainWindow(QMainWindow):
         sidebar_layout.addWidget(self.port_edit)
         sidebar_layout.addWidget(self.connect_button)
         sidebar_layout.addWidget(self.disconnect_button)
-        sidebar_layout.addWidget(self.sweep_tab)
+        sidebar_layout.addWidget(self.tabs)
         sidebar_layout.addStretch(100)
         sidebar.setLayout(sidebar_layout)
  
@@ -50,8 +58,11 @@ class MainWindow(QMainWindow):
         root_layout.addWidget(self.plotter, 80)
         root_frame.setLayout(root_layout)
 
-        self.sweep_tab.start_sweep.connect(self.plotter.sweep)
-        self.sweep_tab.start_sweep.connect(self.sweeper.sweep)
+        sweep_tab.start_sweep.connect(self.plotter.sweep)
+        sweep_tab.start_sweep.connect(self.sweeper.sweep)
+        tune_tab.tune.connect(self.sweeper.tune)
+        beacon_tab.beacon_on.connect(self.sweeper.beacon_on)
+        beacon_tab.beacon_off.connect(self.sweeper.beacon_off)
 
         self.sweeper.connection_opened.connect(self.sweeper_connected)
         self.sweeper.connection_closed.connect(self.sweeper_disconnected)
@@ -59,7 +70,6 @@ class MainWindow(QMainWindow):
 
         self._update_enablement(self.sweeper.is_connected())
 
- 
     def connect_sweeper(self):
         self.sweeper.open_connection(self.port_edit.text())
 
@@ -75,7 +85,7 @@ class MainWindow(QMainWindow):
     def _update_enablement(self, sweeper_connected):
     	self.connect_button.setEnabled(not(sweeper_connected))
     	self.disconnect_button.setEnabled(sweeper_connected)
-    	self.sweep_tab.setEnabled(sweeper_connected)
+    	self.tabs.setEnabled(sweeper_connected)
 
 class SweepTab(QWidget):
     start_sweep = Signal(int, int, int)
@@ -114,6 +124,67 @@ class SweepTab(QWidget):
         steps = self.steps_edit.value()
 
         self.start_sweep.emit(start_frequency, stop_frequency, steps)
+
+class TuneTab(QWidget):
+    tune = Signal(int)
+
+    def __init__(self, parent = None):
+        QWidget.__init__(self, parent)
+
+        frequency_label = QLabel('Frequency [Hz]', self)
+        self.frequency_edit = QSpinBox(self)
+        self.frequency_edit.setRange(1000000, 30000000)
+        self.frequency_edit.setValue(14050000)
+
+        tune_button = QPushButton('Tune On/Off', self)
+        tune_button.clicked.connect(self._tune)
+
+        layout = QVBoxLayout()
+        layout.addWidget(frequency_label)
+        layout.addWidget(self.frequency_edit)
+        layout.addWidget(tune_button)
+        layout.addStretch(100)
+        self.setLayout(layout)
+
+    def _tune(self):
+        frequency = self.frequency_edit.value()
+
+        self.tune.emit(frequency)
+
+class BeaconTab(QWidget):
+    beacon_on = Signal(int, str)
+    beacon_off = Signal()
+
+    def __init__(self, parent = None):
+        QWidget.__init__(self, parent)
+
+        frequency_label = QLabel('Frequency [Hz]', self)
+        self.frequency_edit = QSpinBox(self)
+        self.frequency_edit.setRange(1000000, 30000000)
+        self.frequency_edit.setValue(14050000)
+        text_label = QLabel('Text', self)
+        self.text_edit = QLineEdit(self)
+
+        start_button = QPushButton('On', self)
+        start_button.clicked.connect(self._beacon_on)
+        stop_button = QPushButton('Off', self)
+        stop_button.clicked.connect(self.beacon_off.emit)
+
+        layout = QVBoxLayout()
+        layout.addWidget(frequency_label)
+        layout.addWidget(self.frequency_edit)
+        layout.addWidget(text_label)
+        layout.addWidget(self.text_edit)
+        layout.addWidget(start_button)
+        layout.addWidget(stop_button)
+        layout.addStretch(100)
+        self.setLayout(layout)
+
+    def _beacon_on(self):
+        frequency = self.frequency_edit.value()
+        text = self.text_edit.text()
+
+        self.beacon_on.emit(frequency, text)
 
 class SweepPlotter(pg.PlotWidget):
     def __init__(self, app, parent):
