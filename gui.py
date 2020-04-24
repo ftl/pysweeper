@@ -8,8 +8,9 @@
 # http://www.eclipse.org/legal/epl-v10.html 
 
 import sys
-from PySide.QtCore import *
-from PySide.QtGui import *
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
 import pyqtgraph as pg
 
 class MainWindow(QMainWindow):

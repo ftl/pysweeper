@@ -8,7 +8,7 @@
 # http://www.eclipse.org/legal/epl-v10.html 
 
 import serial, re
-from PySide.QtCore import *
+from PySide2.QtCore import *
 
 class SweepInfo:
     def __init__(self, start_frequency, stop_frequency, steps):

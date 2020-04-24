@@ -9,7 +9,7 @@
 # http://www.eclipse.org/legal/epl-v10.html 
 
 import sys
-from PySide.QtCore import *
+from PySide2.QtCore import *
 from gui import *
 from sweeper import *
 
